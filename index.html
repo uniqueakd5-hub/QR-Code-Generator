@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>QR Code Generator</title>
+  <style>
+    body {
+      background-color: #000;
+      color: gold;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .input-group {
+      margin: 15px auto;
+      width: 80%;
+    }
+    input, button {
+      padding: 10px;
+      margin-top: 5px;
+      width: 80%;
+      max-width: 400px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+    }
+    button {
+      background-color: gold;
+      color: black;
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    #qrcode {
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      width: fit-content;
+      border: 4px solid gold;
+      display: none;
+    }
+    #logo {
+      margin-top: 10px;
+    }
+    #downloadBtn {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>QR Code Generator</h1>
+
+  <div class="input-group">
+    <input type="text" id="qrText" placeholder="Enter text or URL" />
+  </div>
+
+  <div class="input-group">
+    <label for="qrColor">Choose QR Color:</label><br>
+    <input type="color" id="qrColor" value="#000000" />
+  </div>
+
+  <div class="input-group">
+    <label for="logo">Upload Logo (optional):</label><br>
+    <input type="file" id="logo" accept="image/*" />
+  </div>
+
+  <div class="input-group">
+    <button onclick="generateQRCode()">Generate QR Code</button>
+    <button id="downloadBtn" onclick="downloadQRCode()">Download QR Code</button>
+  </div>
+
+  <div id="qrcode"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <script>
+    let qrcode = null;
+
+    function generateQRCode() {
+      const qrText = document.getElementById('qrText').value;
+      const qrColor = document.getElementById('qrColor').value;
+      const logoInput = document.getElementById('logo');
+      const qrContainer = document.getElementById('qrcode');
+
+      if (!qrText) {
+        alert("Please enter a link or message to generate QR code.");
+        return;
+      }
+
+      qrContainer.innerHTML = '';
+      qrContainer.style.display = 'block';
+
+      qrcode = new QRCode(qrContainer, {
+        text: qrText,
+        width: 200,
+        height: 200,
+        colorDark: qrColor,
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      // Wait and then try adding logo (if uploaded)
+      setTimeout(() => {
+        if (logoInput.files.length > 0) {
+          const qrCanvas = qrContainer.querySelector('canvas');
+          const ctx = qrCanvas.getContext("2d");
+          const logo = new Image();
+          logo.src = URL.createObjectURL(logoInput.files[0]);
+          logo.onload = () => {
+            const logoSize = 50;
+            const x = (qrCanvas.width / 2) - (logoSize / 2);
+            const y = (qrCanvas.height / 2) - (logoSize / 2);
+            ctx.drawImage(logo, x, y, logoSize, logoSize);
+          };
+        }
+      }, 500);
+
+      document.getElementById('downloadBtn').style.display = 'inline-block';
+    }
+
+    function downloadQRCode() {
+      const canvas = document.querySelector("#qrcode canvas");
+      const link = document.createElement('a');
+      link.download = 'qr-code.png';
+      link.href = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+      link.click();
+    }
+  </script>
+</body>
+</html>
